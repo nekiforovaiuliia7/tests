@@ -1,0 +1,6 @@
+flask
+requests
+uuid
+json
+pytest
+os
