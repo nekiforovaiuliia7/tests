@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Прогноз погоды</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 24px 28px 18px 28px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.7em;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            position: relative;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            font-size: 1em;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #388e3c;
+        }
+        .weather-block, .error-block {
+            margin-bottom: 18px;
+            padding: 12px;
+            border-radius: 5px;
+        }
+        .weather-block {
+            background: #e3f6e8;
+        }
+        .error-block {
+            background: #ffeaea;
+            color: #b71c1c;
+        }
+        hr {
+            margin: 18px 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+        ul {
+            padding-left: 18px;
+        }
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #ddd;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .autocomplete-items div {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Прогноз погоды</h1>
+    <form method="POST" autocomplete="off">
+        <input type="text" name="city" id="cityInput" placeholder="Введите город" required>
+        <button type="submit">Узнать погоду</button>
+        <div id="autocompleteList" class="autocomplete-items"></div>
+    </form>
+    {% if weather %}
+        {% if weather.error %}
+            <div class="error-block">{{ weather.error }}</div>
+        {% else %}
+            <div class="weather-block">
+                <b>Погода в городе {{ weather.city }}</b><br>
+                Температура: {{ weather.temperature }}°C<br>
+                Ощущается как: {{ weather.feels_like }}°C<br>
+                Скорость ветра: {{ weather.wind_speed }} м/с
+            </div>
+        {% endif %}
+    {% endif %}
+    <hr>
+    <b>Ваши последние города:</b>
+    <ul>
+        {% for city in history %}
+            <li>{{ city }}</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <b>Статистика по городам:</b>
+    <ul>
+        {% for city, count in stats.items() %}
+            <li>{{ city }}: {{ count }}</li>
+        {% endfor %}
+    </ul>
+</div>
+<script>
+// Список популярных городов
+const cities = [
+    'Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань',
+    'Нижний Новгород', 'Челябинск', 'Омск', 'Самара', 'Ростов-на-Дону',
+    'Уфа', 'Красноярск', 'Воронеж', 'Пермь', 'Волгоград'
+];
+
+const input = document.getElementById('cityInput');
+const autocompleteList = document.getElementById('autocompleteList');
+
+input.addEventListener('input', function() {
+    const val = this.value.toLowerCase();
+    autocompleteList.innerHTML = '';
+    
+    if (!val) {
+        autocompleteList.style.display = 'none';
+        return;
+    }
+
+    const matches = cities.filter(city => 
+        city.toLowerCase().includes(val)
+    );
+
+    if (matches.length > 0) {
+        autocompleteList.style.display = 'block';
+        matches.forEach(city => {
+            const div = document.createElement('div');
+            div.textContent = city;
+            div.onclick = function() {
+                input.value = city;
+                autocompleteList.style.display = 'none';
+            };
+            autocompleteList.appendChild(div);
+        });
+    } else {
+        autocompleteList.style.display = 'none';
+    }
+});
+
+// Скрываем список при клике вне поля ввода
+document.addEventListener('click', function(e) {
+    if (!e.target.matches('#cityInput')) {
+        autocompleteList.style.display = 'none';
+    }
+});
+</script>
+</body>
+</html> 
